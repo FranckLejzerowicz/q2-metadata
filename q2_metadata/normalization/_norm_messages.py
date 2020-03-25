@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 
 
-class errorsCollection(object):
+class ErrorsCollection(object):
 
     def __init__(self, variable, rule, rule_value):
         pass
