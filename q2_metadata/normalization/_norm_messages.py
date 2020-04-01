@@ -9,11 +9,11 @@
 
 class ErrorsCollection(object):
 
-    def __init__(self, variable, rule, rule_value):
+    def __init__(self):
         pass
 
 
 class WarningsCollection(object):
 
-    def __init__(self, variable_rules: dict):
+    def __init__(self):
         pass
