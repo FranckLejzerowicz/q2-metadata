@@ -21,7 +21,7 @@
 
 
 blank: Not applicable
-expected: Gazetteer ontology
+ontology: Gazetteer ontology
 format: str
 remap:
   USA: US
