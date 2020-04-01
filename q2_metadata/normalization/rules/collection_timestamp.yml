@@ -21,6 +21,6 @@
 # - No range applicable
 # blank: no blank value    # then rather only leave "- must exist" in "validation"
 
-format: 2016-11-22
+format: yyyy-mm-dd
 check:
  - exist
