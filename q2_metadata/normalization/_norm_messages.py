@@ -7,13 +7,13 @@
 # ----------------------------------------------------------------------------
 
 
-class errorsCollection(object):
+class ErrorsCollection(object):
 
     def __init__(self, variable, rule, rule_value):
         pass
 
 
-class warningsCollection(object):
+class WarningsCollection(object):
 
     def __init__(self, variable_rules: dict):
         pass
