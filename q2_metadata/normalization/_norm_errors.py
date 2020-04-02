@@ -53,9 +53,9 @@ class OntologyError(Error):
         self.message = self.get_message()
 
     def get_message(self):
-        ontologies = ['Gazetteer ontology']
         if not isinstance(self.value, str):
             return 'is not a string'
+        ontologies = ['Gazetteer ontology']
         if self.value not in ontologies:
             return 'none of %s' % ', '.join(ontologies)
 
@@ -106,11 +106,11 @@ class ValidationError(Error):
         accepted_set = rule_value_set & set(possible_validations)
         non_accepted_set = sorted(rule_value_set ^ accepted_set)
         if len(non_accepted_set):
-            return 'inacceptable validations (%s)' % ', '.join(non_accepted_set)
+            return 'inacceptable validations: %s' % ', '.join(non_accepted_set)
         possible_validations_2 = possible_validations['force_to_blank_if']
         for rule_2, rule_value_2 in self.value['force_to_blank_if'].items():
             if not isinstance(rule_value_2, list):
-                return 'variables under condition "%s" not in a list' % rule_2
+                return 'variables not in a list for condition: %s' % rule_2
             if rule_2 not in possible_validations_2:
                 return 'inacceptable condition: %s' % rule_2
 
@@ -136,7 +136,7 @@ class NormalizationError(Error):
         rule_value_set = set(self.value)
         impossible = sorted(rule_value_set ^ (rule_value_set & possible_normalizations))
         if len(impossible):
-            return 'impossible normalization terms (%s)' % ', '.join(impossible)
+            return 'impossible normalization terms: %s' % ', '.join(impossible)
 
     def __str__(self):
         message = self.generic_message(self.rule, self.variable, self.value)
