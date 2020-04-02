@@ -114,10 +114,30 @@ class Rules(object):
     normalize
         Perform the application of the variables' rules.
 
+    Raises
+    ------
+    IOError : yaml.YAMLError
+        If something went wrong with reading the .yml rule file.
+    ExpectedError
+        If wrong formatting of an "expected" rule.
+    OntologyError
+        If wrong formatting of an "ontology" rule.
+    RemapError
+        If wrong formatting of a "remap" rule.
+    ValidationError
+        If wrong formatting of a "validation" rule.
+    NormalizationError,
+         If wrong formatting of an "normalization" rule.
+    BlankError
+        If wrong formatting of a "blank" rule.
+    MissingError
+        If wrong formatting of a "missing" rule.
+    FormatError
+        If wrong formatting of a "format" rule.
+
     """
     def __init__(self, variable_rules_fp: str):
-        """
-        Initialize the class instance for the set of rules associated
+        """Initialize the class instance for the set of rules associated
         with a single metadata variable. The instantiated class will be
         given a `variable` attribute corresponding to the variable name
         as string, as well as a `rules` attribute collecting the actual
@@ -127,6 +147,7 @@ class Rules(object):
         ----------
         variable_rules_fp : str
             Path to one variable's rules yaml file.
+
         """
         self.rules = {
             'edits': {
@@ -177,7 +198,6 @@ class Rules(object):
         """
         for rule, rule_value in self.variables_rules.items():
             check_rule(self.variable, self.rules, rule, rule_value)
-        print(self.rules)
 
     def normalize(self, variable: str, input_column: pd.Series) -> pd.Series:
         """
@@ -214,12 +234,8 @@ class RulesCollection(object):
 
     Attributes
     ----------
-    variables_names : list
-        Variables that have associated rules (and for now
-        that are all the the rules from AGP until we refine the scope
-        and decide whether to bother users with failed rules parsing
-        checks for rules that are irrelevant to this user, i.e. shall
-        we only parse rules in the focus?)
+    variables_rules_files : list
+        Paths to the yaml rules files.
     warnings : WarningsCollection instance
         Collection of warnings encountered during either the parsing
         of the variables rules, or during the application the rules.
@@ -249,13 +265,22 @@ class RulesCollection(object):
     """
 
     def __init__(self, variables_rules_dir):
+        """Initialize the class instance for the collection of the set
+        of rules associated with all the metadata variables. The instantiated class will be
+        given a `variable` attribute corresponding to the variable name
+        as string, as well as a `rules` attribute collecting the actual
+        rules in a dictionary.
+
+        Parameters
+        ----------
+        variables_rules_dir
+        """
         self.warnings = WarningsCollection()
         self.errors = ErrorsCollection()
         self.variables_rules_fps = self._check_variables_rules_dir(variables_rules_dir)
 
     def parse_variables_rules(self) -> dict:
-        """
-        Parse the variables yaml rues files one by one.
+        """Parse the variables yaml rues files one by one.
 
         Returns
         -------
