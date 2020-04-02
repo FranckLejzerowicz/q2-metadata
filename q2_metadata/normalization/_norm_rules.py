@@ -87,9 +87,6 @@ class Rules(object):
 
     Attributes
     ----------
-    variable : str
-        Name of the variable which rules are parsed and
-        that is the yaml file name without the .yml extension.
     rules: dict
         Checked rules in a hard-coded data structure that
         has common default values for all variables and
@@ -136,7 +133,7 @@ class Rules(object):
         If wrong formatting of a "format" rule.
 
     """
-    def __init__(self, variable_rules_fp: str):
+    def __init__(self, variable_rules_fp: str, variable: str):
         """Initialize the class instance for the set of rules associated
         with a single metadata variable. The instantiated class will be
         given a `variable` attribute corresponding to the variable name
@@ -147,6 +144,9 @@ class Rules(object):
         ----------
         variable_rules_fp : str
             Path to one variable's rules yaml file.
+        variable : str
+            Name of the variable which rules are parsed and
+            that is the yaml file name without the .yml extension.
 
         """
         self.rules = {
@@ -165,11 +165,10 @@ class Rules(object):
             },
             'format': None
         }
-        self.variable = splitext(basename(variable_rules_fp))[0]
         self.variables_rules = self.parse_rule(variable_rules_fp)
         self.warnings = WarningsCollection()
         self.errors = ErrorsCollection()
-        self._check_variable_rules()
+        self._check_variable_rules(variable)
 
     @staticmethod
     def parse_rule(variable_rules_fp: str):
@@ -192,12 +191,12 @@ class Rules(object):
             except yaml.YAMLError:
                 raise IOError("Something is wrong with the .yml rule file.")
 
-    def _check_variable_rules(self):
+    def _check_variable_rules(self, variable):
         """This functions adds encountered issues
         to the warning/error class objects.
         """
         for rule, rule_value in self.variables_rules.items():
-            check_rule(self.variable, self.rules, rule, rule_value)
+            check_rule(variable, self.rules, rule, rule_value)
 
     def normalize(self, variable: str, input_column: pd.Series) -> pd.Series:
         """
@@ -293,7 +292,7 @@ class RulesCollection(object):
             variable = splitext(basename(variable_rules_fp))[0]
             # make an instance of the class Rules() to get the rules
             # of the current variable and check the yaml format
-            variables_rules[variable] = Rules(variable_rules_fp)
+            variables_rules[variable] = Rules(variable_rules_fp, variable)
         return variables_rules
 
     @staticmethod
