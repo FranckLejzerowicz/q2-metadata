@@ -53,7 +53,7 @@ class Rules(object):
                             - not provided
                             - restricted access
         format must be a str
-            Apply rule of checking that the passed column in the correct format:
+            Apply rule of checking that the passed column is in the correct format:
             [THIS COMMAND WOULD EITHER INFER THE DTYPE (as of now) OR USE THE
             RESULT OF AN INITIAL DTYPE GETTER FUNCTION (see _dtypes.py)]
                         format:
