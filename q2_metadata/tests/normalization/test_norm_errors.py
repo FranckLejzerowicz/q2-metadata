@@ -50,13 +50,13 @@ class RuleFormatCheck(unittest.TestCase):
                 '1', 1, [],
                 {'a': 1},
                 {'maximum': 1, 'a': 1},
-                {'maximum': 1, 'mininum': 1, 'a': 1},
-                {'maximum': 1, 'mininum': 1, 'gated_value': 1, 'a': 1}
+                {'maximum': 1, 'minimum': 1, 'a': 1},
+                {'maximum': 1, 'minimum': 1, 'gated_value': 1, 'a': 1}
             ],
             1: [
                 {'maximum': 1},
-                {'maximum': 1, 'mininum': 1},
-                {'maximum': 1, 'mininum': 1, 'gated_value': 1}
+                {'maximum': 1, 'minimum': 1},
+                {'maximum': 1, 'minimum': 1, 'gated_value': 1}
             ]
         }
         self.values_str = {
