@@ -36,20 +36,25 @@ def normalize(metadata: q2.Metadata, rules_dir: q2.plugin.Str) -> q2.Metadata:
     # (A REAL USER SHOULD PASS ANOTHER FOLDER LOCATION TO '--p-rules-dir')
     variables_rules_dir = get_variables_rules_dir(rules_dir, RULES)
 
-    # initialize the collection objects for warning and errors
+    # initialize the collection objects as well as for warning and errors
+    rules = RulesCollection()
     warnings = WarningsCollection()
     errors = ErrorsCollection()
 
     # Collect rules from yaml files folder by instantiating a class
-    rules = RulesCollection(variables_rules_dir)
+    variables_rules_files = rules._check_variables_rules_dir(variables_rules_dir)
+
     # parse all the variables' yaml rules files
-    variables_rules = rules.parse_variables_rules()
+    rules.parse_variables_rules(list(variables_rules_files))
 
     # Get metadata as pandas data frame
     md = metadata.to_dataframe()
 
     # get metadata variables that have rules
-    focus = get_intersection(sorted(variables_rules), md.columns.tolist())
+    focus = get_intersection(sorted(rules.variables_rules), md.columns.tolist())
+
+    # checks correct rules format and put rules in data structure
+    rules.check_variables_rules(list(focus))
 
     # apply rules one variable at a time
     # for variable in focus:
