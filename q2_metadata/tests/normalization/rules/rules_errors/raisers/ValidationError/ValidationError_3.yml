@@ -1,0 +1,3 @@
+validation:
+  force_to_blank_if:
+    is null: "not a list"

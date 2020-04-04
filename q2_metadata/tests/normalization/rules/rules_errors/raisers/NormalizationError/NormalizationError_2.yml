@@ -1,0 +1,4 @@
+normalization:
+  gated_mispelled: Out of bounds
+  maximum: 120
+  minimum: 0

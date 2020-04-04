@@ -1,0 +1,4 @@
+validation:
+  force_to_blank_if:
+    is null:
+    - host_taxid
