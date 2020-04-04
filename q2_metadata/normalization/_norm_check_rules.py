@@ -26,8 +26,7 @@ def check_rule(variable: str, rules: dict, rule: str, rule_value):
     Parameters
     ----------
     variable : str
-        Name of the variable which rules are parsed and
-        that is the yaml file name without the .yml extension.
+        Name of the metadata variable for which there is rules.
     rules : dict
         Rules in the hard-coded data structure that has
         common default values for all variables and
@@ -255,7 +254,7 @@ def check_normalization(rule_value):
 
     """
     if isinstance(rule_value, dict):
-        possible_normalizations = {'maximum', 'mininum', 'gated_value'}
+        possible_normalizations = {'maximum', 'minimum', 'gated_value'}
         rule_value_set = set(rule_value)
         if not len(rule_value_set ^ (rule_value_set & possible_normalizations)):
             return True
