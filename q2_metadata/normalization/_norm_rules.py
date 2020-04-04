@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import yaml
+from yaml import scanner
 from glob import glob
 import pandas as pd
 from os.path import basename, isdir, splitext
@@ -133,7 +134,7 @@ class Rules(object):
         If wrong formatting of a "format" rule.
 
     """
-    def __init__(self, variable_rules_fp: str, variable: str):
+    def __init__(self, variable_rules_fp: str):
         """Initialize the class instance for the set of rules associated
         with a single metadata variable. The instantiated class will be
         given a `variable` attribute corresponding to the variable name
@@ -144,9 +145,6 @@ class Rules(object):
         ----------
         variable_rules_fp : str
             Path to one variable's rules yaml file.
-        variable : str
-            Name of the variable which rules are parsed and
-            that is the yaml file name without the .yml extension.
 
         """
         self.rules = {
@@ -165,10 +163,9 @@ class Rules(object):
             },
             'format': None
         }
-        self.variables_rules = self.parse_rule(variable_rules_fp)
+        self.parsed_rules = self.parse_rule(variable_rules_fp)
         self.warnings = WarningsCollection()
         self.errors = ErrorsCollection()
-        self._check_variable_rules(variable)
 
     @staticmethod
     def parse_rule(variable_rules_fp: str):
@@ -181,22 +178,20 @@ class Rules(object):
 
         Returns
         -------
-        yaml_loaded : dict
+        parsed_rules : dict
             Parsed variable's rules.
+
         """
         with open(variable_rules_fp) as handle:
             try:
-                yaml_loaded = yaml.load(handle, Loader=yaml.FullLoader)
-                return yaml_loaded
+                parsed_rules = yaml.load(handle, Loader=yaml.FullLoader)
+                return parsed_rules
             except yaml.YAMLError:
                 raise IOError("Something is wrong with the .yml rule file.")
-
-    def _check_variable_rules(self, variable):
-        """This functions adds encountered issues
-        to the warning/error class objects.
-        """
-        for rule, rule_value in self.variables_rules.items():
-            check_rule(variable, self.rules, rule, rule_value)
+            except yaml.scanner.ScannerError:
+                raise IOError("Something is wrong with the .yml rule file.")
+            except UnicodeDecodeError:
+                raise IOError("Something is wrong with the .yml rule file.")
 
     def normalize(self, variable: str, input_column: pd.Series) -> pd.Series:
         """
@@ -244,6 +239,9 @@ class RulesCollection(object):
 
     Methods
     -------
+    check_variables_rules
+        Fills `rules` attribute with correctly formatted rules
+        for the current variable, or raise user-defined exception.
     _check_variables_rules_dir
         Performs checks on rules paths input. Either raise Exceptions,
         or return the list `variables_rules_files` containing the paths
@@ -263,37 +261,51 @@ class RulesCollection(object):
 
     """
 
-    def __init__(self, variables_rules_dir):
+    def __init__(self) -> None:
         """Initialize the class instance for the collection of the set
         of rules associated with all the metadata variables. The instantiated class will be
         given a `variable` attribute corresponding to the variable name
         as string, as well as a `rules` attribute collecting the actual
         rules in a dictionary.
 
-        Parameters
-        ----------
-        variables_rules_dir
         """
         self.warnings = WarningsCollection()
         self.errors = ErrorsCollection()
-        self.variables_rules_fps = self._check_variables_rules_dir(variables_rules_dir)
+        self.variables_rules = {}
 
-    def parse_variables_rules(self) -> dict:
+    def parse_variables_rules(self, variables_rules_files: list) -> None:
         """Parse the variables yaml rues files one by one.
+        At this point, the attribute `variables_rules` will
+        have for each variable (keys), an instance of the
+        Rules() class, initiated with an empty default data
+        structure `rules` and the yet unchecked `parsed_rules`.
 
-        Returns
-        -------
-        variables_rules : dict
-            Rules (values) for each metadata variable (keys).
+        Parameters
+        ----------
+        variables_rules_files : list
+            Paths to the yaml rules files.
 
         """
-        variables_rules = {}
-        for variable_rules_fp in self.variables_rules_fps:
+        for variable_rules_fp in variables_rules_files:
             variable = splitext(basename(variable_rules_fp))[0]
-            # make an instance of the class Rules() to get the rules
-            # of the current variable and check the yaml format
-            variables_rules[variable] = Rules(variable_rules_fp, variable)
-        return variables_rules
+            # instantiate Rules() class to get variable's yaml rules
+            self.variables_rules[variable] = Rules(variable_rules_fp)
+
+    def check_variables_rules(self, focus: list) -> None:
+        """This method fills the rules attribute with the correctly
+        formatted rules for the current variable, or or raise user-
+        defined exception.
+
+        Parameters
+        ----------
+        focus : list
+            Metadata variables that have rules.
+
+        """
+        for variable in focus:
+            variable_rules = self.variables_rules[variable]
+            for rule, rule_value in variable_rules.parsed_rules.items():
+                check_rule(variable, variable_rules.rules, rule, rule_value)
 
     @staticmethod
     def _check_variables_rules_dir(variables_rules_dir: str) -> list:
