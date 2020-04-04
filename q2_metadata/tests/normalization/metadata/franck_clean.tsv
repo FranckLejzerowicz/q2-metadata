@@ -1,0 +1,21 @@
+sample_name	body_product	collection_timestamp	country	diabetes	dna_extracted	fermented_plant_frequency	geo_loc_name	height_cm	host_taxid
+10317.000001000	UBERON:feces	2020-03-03	USA	I do not have this condition	TRUE	Never	USA	-10	Not applicable
+10318.000001000	UBERON:feces	2020-03-04	USA	I do not have this condition	TRUE	Never	USA	-5	10000
+10319.000001000	UBERON:feces	2020-03-05	USA	I do not have this condition	TRUE	Never	USA	0	10000
+10320.000001000	UBERON:feces	2020-03-06	USA	Diagnosed by a medical professional (doctor, physician assistant)	TRUE	Rarely (less than once/week)	USA	5	10000
+10321.000001000	UBERON:feces	2020-03-07	USA	Diagnosed by a medical professional (doctor, physician assistant)	TRUE	Rarely (less than once/week)	USA	10	10000
+10322.000001000	UBERON:feces	2020-03-08	USA	Diagnosed by a medical professional (doctor, physician assistant)	TRUE	Rarely (less than once/week)	USA	15	10000
+10323.000001000	UBERON:feces	2020-03-09	USA	Diagnosed by a medical professional (doctor, physician assistant)	TRUE	Occasionally (1-2 times/week)	USA	20	10000
+10324.000001000	UBERON:feces	2020-03-10	USA	Diagnosed by a medical professional (doctor, physician assistant)	TRUE	Occasionally (1-2 times/week)	USA	25	10000
+10325.000001000	UBERON:feces	2020-03-11	USA	I do not have this condition	TRUE	Occasionally (1-2 times/week)	USA	30	10000
+10326.000001000	UBERON:feces	2020-03-12	USA	I do not have this condition	TRUE	Regularly (3-5 times/week)	USA	35	10000
+10327.000001000	UBERON:feces	2020-03-13	USA	I do not have this condition	TRUE	Regularly (3-5 times/week)	USA	40	10000
+10328.000001000	Not applicable	2020-03-14	USA	I do not have this condition	FALSE	Regularly (3-5 times/week)	USA	45	10000
+10329.000001000	Not applicable	2020-03-15	USA	I do not have this condition	FALSE	Daily	USA	50	10000
+10330.000001000	Not applicable	2020-03-16	USA	I do not have this condition	FALSE	Daily	USA	70	10000
+10331.000001000	UBERON:sebum	2020-03-17	USA	I do not have this condition	FALSE	Daily	USA	90	10000
+10332.000001000	UBERON:sebum	2020-03-18	USA	I do not have this condition	FALSE	Daily	USA	110	10000
+10333.000001000	UBERON:sebum	2020-03-19	USA	I do not have this condition	FALSE	Daily	USA	110	10000
+10334.000001000	UBERON:sebum	2020-03-20	USA	I do not have this condition	FALSE	Daily	USA	110	10000
+10335.000001000	UBERON:sebum	2020-03-21	USA	I do not have this condition	FALSE	Daily	USA	110
+10336.000001000	UBERON:sebum	2020-03-22	USA	I do not have this condition	FALSE	Daily	USA	130	10000
