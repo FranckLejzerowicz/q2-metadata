@@ -17,5 +17,5 @@ sample_name	body_product	collection_timestamp	country	diabetes	dna_extracted	fer
 10332.000001000	UBERON:sebum	2020-03-18	USA	I do not have this condition	FALSE	Daily	USA	110	10000
 10333.000001000	UBERON:sebum	2020-03-19	USA	I do not have this condition	FALSE	Daily	USA	110	10000
 10334.000001000	UBERON:sebum	2020-03-20	USA	I do not have this condition	FALSE	Daily	USA	110	10000
-10335.000001000	UBERON:sebum	2020-03-21	USA	I do not have this condition	FALSE	Daily	USA	110
+10335.000001000	UBERON:sebum	2020-03-21	USA	I do not have this condition	FALSE	Daily	USA	110	10000
 10336.000001000	UBERON:sebum	2020-03-22	USA	I do not have this condition	FALSE	Daily	USA	130	10000
