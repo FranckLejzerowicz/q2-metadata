@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+
 import qiime2 as q2
 import pandas as pd
 import pkg_resources
@@ -17,7 +18,7 @@ from q2_metadata.normalization._norm_rules import RulesCollection
 RULES = pkg_resources.resource_filename("q2_metadata", "")
 
 
-def normalize(metadata: q2.Metadata, rules_dir: q2.plugin.Str) -> q2.Metadata:
+def normalize(metadata: q2.Metadata, rules_dir: q2.plugin.Str) -> pd.DataFrame:
     """
     Parameters
     ----------
@@ -28,7 +29,7 @@ def normalize(metadata: q2.Metadata, rules_dir: q2.plugin.Str) -> q2.Metadata:
 
     Returns
     -------
-    metadata_curated : q2.Metadata
+    metadata_curated : pd.DataFrame
         Curated metadata table.
     """
 
@@ -61,5 +62,4 @@ def normalize(metadata: q2.Metadata, rules_dir: q2.plugin.Str) -> q2.Metadata:
     #     md[variable] = rules.normalize(variable, md[variable])
 
     # only during dev so that the function return something :)
-    md_out = pd.DataFrame()
-    return q2.Metadata(md_out)
+    return md
