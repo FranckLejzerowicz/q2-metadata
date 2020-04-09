@@ -1,2 +1,5 @@
 remap:
-  USA: 1
+  USA:
+    - list
+    - not
+    - allowed

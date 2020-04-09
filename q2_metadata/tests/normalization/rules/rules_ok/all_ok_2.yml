@@ -1,0 +1,19 @@
+format: str
+blank: Not applicable
+missing: Not provided
+expected:
+- I do not have this condition
+- Self-diagnosed
+- Diagnosed by a medical professional (doctor, physician assistant)
+- Diagnosed by an alternative medicine practitioner
+ontology: Gazetteer ontology
+validation:
+  force_to_blank_if:
+    is null:
+    - host_taxid
+remap:
+  USA: US
+normalization:
+  gated_value: Out of bounds
+  maximum: 120
+  minimum: 0
