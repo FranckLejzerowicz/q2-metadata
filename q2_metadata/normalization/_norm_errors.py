@@ -20,6 +20,20 @@ class Error(Exception):
                '%s' % (rule, variable, reformatted_value)
 
 
+class RuleError(Error):
+    """Exception raised for error due to the
+    presence of a rule that's not recognized."""
+
+    def __init__(self, rule, variable, value):
+        self.rule = rule
+        self.variable = variable
+        self.value = value
+
+    def __str__(self):
+        message = self.generic_message(self.rule, self.variable, self.value)
+        return '%s -> rule not recognized' % message
+
+
 class ExpectedError(Error):
     """Exception raised for errors in the
     formatting of the "expected values" rules.
@@ -148,38 +162,43 @@ class BlankError(Error):
     formatting of the "blank values" rules.
     """
     def __init__(self, variable, value):
-        self.rule = 'format'
+        self.rule = 'blank'
         self.variable = variable
         self.value = value
+        self.allowed_values = {
+            'not applicable', 'not collected',
+            'not provided', 'restricted access'
+        }
+        self.message = self.get_message()
+
+    def get_message(self):
+        if not isinstance(self.value, str):
+            return 'is not a string'
+        if self.value not in self.allowed_values:
+            return 'not in controlled vocabulary: %s' % self.value
 
     def __str__(self):
         message = self.generic_message(self.rule, self.variable, self.value)
-        return '%s -> is not a string' % message
+        return '%s -> %s' % (message, self.message)
 
 
-class MissingError(Error):
+class MissingError(BlankError):
     """Exception raised for errors in the
     formatting of the "missing values" rules.
     """
     def __init__(self, variable, value):
+        BlankError.__init__(self, variable, value)
         self.rule = 'missing'
-        self.variable = variable
-        self.value = value
-
-    def __str__(self):
-        message = self.generic_message(self.rule, self.variable, self.value)
-        return '%s -> is not a string' % message
 
 
-class FormatError(Error):
+class FormatError(BlankError):
     """Exception raised for errors in the
     formatting of the "format values" rules.
     """
     def __init__(self, variable, value):
+        BlankError.__init__(self, variable, value)
         self.rule = 'format'
-        self.variable = variable
-        self.value = value
-
-    def __str__(self):
-        message = self.generic_message(self.rule, self.variable, self.value)
-        return '%s -> is not a string' % message
+        self.allowed_values = {
+            'bool', 'float',
+            'int', 'str'
+        }
