@@ -6,7 +6,6 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-
 import qiime2 as q2
 import pandas as pd
 import pkg_resources
