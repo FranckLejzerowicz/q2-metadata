@@ -42,7 +42,7 @@ def normalize(metadata: q2.Metadata, rules_dir: q2.plugin.Str) -> pd.DataFrame:
     errors = ErrorsCollection()
 
     # Collect rules from yaml files folder by instantiating a class
-    variables_rules_files = rules._check_variables_rules_dir(variables_rules_dir)
+    variables_rules_files = rules.check_variables_rules_dir(variables_rules_dir)
 
     # parse all the variables' yaml rules files
     rules.parse_variables_rules(list(variables_rules_files))
@@ -54,7 +54,7 @@ def normalize(metadata: q2.Metadata, rules_dir: q2.plugin.Str) -> pd.DataFrame:
     focus = get_intersection(rules.variables_rules.keys(), md.columns.tolist())
 
     # checks correct rules format and put rules in data structure
-    rules.check_variables_rules(list(focus))
+    rules.check_variables_rules(focus)
 
     # apply rules one variable at a time
     # for variable in focus:
