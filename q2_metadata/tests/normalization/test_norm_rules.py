@@ -11,6 +11,7 @@ import unittest
 import pkg_resources
 from q2_metadata.normalization._norm_rules import RulesCollection, Rules
 from q2_metadata.normalization._norm_errors import (
+    RuleError,
     ExpectedError,
     OntologyError,
     RemapError,
@@ -20,7 +21,6 @@ from q2_metadata.normalization._norm_errors import (
     MissingError,
     FormatError
 )
-
 
 ROOT = pkg_resources.resource_filename('q2_metadata', 'tests/normalization/rules')
 
@@ -36,6 +36,7 @@ class RulesCollectionInputTests(unittest.TestCase):
 
         # in this directory the rule are names as if the variables names
         # were the error type name (for convenience in unittesting here).
+        self.rule_rad = '%s/RuleError/RuleError' % self.raisers_dir
         self.blank_rad = '%s/BlankError/BlankError' % self.raisers_dir
         self.expected_rad = '%s/ExpectedError/ExpectedError' % self.raisers_dir
         self.format_rad = '%s/FormatError/FormatError' % self.raisers_dir
@@ -48,6 +49,23 @@ class RulesCollectionInputTests(unittest.TestCase):
         #  (1) '%s_0.yml' % self.blank_rad    --> will NOT raise error
         #  (2) '%s_1.yml' % self.blank_rad    --> will raise error
         #  (3) '%s_2.yml' % self.blank_rad    --> will raise error
+
+    def test_rule_formatting(self):
+
+        # testing instance
+        rule_structure_key = 'allowed'
+        cur_rule = 'blank'
+        rules_collection = RulesCollection()
+        rules_collection.parse_variables_rules(glob.glob('%s*yml' % self.rule_rad))
+
+        # no error raised
+        rules_collection.check_variables_rules(['RuleError_0'])
+        rule = rules_collection.variables_rules['RuleError_0'].rules
+        self.assertEqual(rule[rule_structure_key][cur_rule], 'Not applicable')
+
+        # error raised 1
+        with self.assertRaises(RuleError):
+            rules_collection.check_variables_rules(['RuleError_1'])
 
     def test_blank_formatting(self):
 
@@ -93,14 +111,15 @@ class RulesCollectionInputTests(unittest.TestCase):
     def test_format_formatting(self):
 
         # testing instance
-        rule_structure_key = 'format'
+        rule_structure_key = 'allowed'
+        cur_rule = 'format'
         rules_collection = RulesCollection()
         rules_collection.parse_variables_rules(glob.glob('%s*yml' % self.format_rad))
 
         # no error raised
         rules_collection.check_variables_rules(['FormatError_0'])
         rule = rules_collection.variables_rules['FormatError_0'].rules
-        self.assertEqual(rule[rule_structure_key], 'int')
+        self.assertEqual(rule[rule_structure_key][cur_rule], 'int')
 
         # error raised 1
         with self.assertRaises(FormatError):
@@ -182,7 +201,7 @@ class RulesCollectionInputTests(unittest.TestCase):
         # no error raised
         rules_collection.check_variables_rules(['RemapError_0'])
         rule = rules_collection.variables_rules['RemapError_0'].rules
-        self.assertEqual(rule[rule_structure_key][cur_rule], {'USA': 'US'})
+        self.assertEqual(rule[rule_structure_key][cur_rule], {'USA': 'US', 1: 'one', 'one': 1})
 
         # error raised 1
         with self.assertRaises(RemapError):
@@ -234,77 +253,12 @@ class RulesCollectionClassTests(unittest.TestCase):
             },
             'allowed': {
                 'blank': None,
-                'missing': None
-            },
-            'format': None
+                'missing': None,
+                'format': None
+            }
         }
-
-        # testing instance
-        self.rules_collection = RulesCollection()
-
-        # error yaml files directories
-        self.no_dir = '%s/rules_collection_errors/none' % ROOT
-        self.empty = '%s/rules_collection_errors/empty' % ROOT
-        self.no_yml = '%s/rules_collection_errors/no_yml' % ROOT
-
-        # ok yaml files directory
-        self.ok_dir = '%s/rules_collection_errors/ok' % ROOT
-        self.files = ['%s/%s.yml' % (self.ok_dir, x) for x in ['A', 'B']]
-        self.rules = {
-            'A': self.rules_template.copy(),
-            'B': self.rules_template.copy(),
-        }
-
-    def test_check_variables_rules_dir(self):
-
-        with self.assertRaises(IOError) as ex:
-            self.rules_collection._check_variables_rules_dir(self.no_dir)
-        self.assertEqual("Input directory %s does not exist" % self.no_dir, str(ex.exception))
-
-        with self.assertRaises(IOError) as ex:
-            self.rules_collection._check_variables_rules_dir(self.empty)
-        self.assertEqual("Input directory %s empty" % self.empty, str(ex.exception))
-
-        with self.assertRaises(IOError) as ex:
-            self.rules_collection._check_variables_rules_dir(self.no_yml)
-        self.assertEqual("Input directory %s empty" % self.no_yml, str(ex.exception))
-
-        content = self.rules_collection._check_variables_rules_dir(self.ok_dir)
-        self.assertEqual(sorted(content), self.files)
-
-    def test_parse_variables_rules(self):
-
-        self.rules_collection.parse_variables_rules(self.files)
-        for variable, variable_rules in self.rules_collection.variables_rules.items():
-            self.assertEqual(variable_rules.parsed_rules, {'format': 'str'})
-
-
-class RulesClassTests(unittest.TestCase):
-
-    def setUp(self):
-
-        self.rules_dir = '%s/rules_errors' % ROOT
-        self.not_yml = '%s/not_yml' % self.rules_dir
-        # these two well-formatted, dummy rules contain the following info
-        self.simple_ok = '%s/ok/simple.yml' % self.rules_dir
-        self.all_ok = '%s/ok/all_ok.yml' % self.rules_dir
-        self.rules = {
-            'edits': {
-                'remap': {},
-                'normalization': {},
-                'validation': {}
-            },
-            'lookups': {
-                'ontology': None,
-                'expected': []
-            },
-            'allowed': {
-                'blank': None,
-                'missing': None
-            },
-            'format': None
-        }
-        self.default_rules = {
+        self.rules_ok_dir = '%s/rules_ok' % ROOT
+        self.rules_ok = {
             'edits': {
                 'remap': {'USA': 'US'},
                 'normalization': {
@@ -327,8 +281,90 @@ class RulesClassTests(unittest.TestCase):
             },
             'allowed': {
                 'blank': 'Not applicable',
-                'missing': 'Not provided'
+                'missing': 'Not provided',
+                'format': 'str'
+            }
+        }
+
+        # testing instance
+        self.rules_collection = RulesCollection()
+
+        # error yaml files directories
+        self.no_dir = '%s/rules_collection_errors/none' % ROOT
+        self.empty = '%s/rules_collection_errors/empty' % ROOT
+        self.no_yml = '%s/rules_collection_errors/no_yml' % ROOT
+
+        # ok yaml files directory
+        self.ok_dir = '%s/rules_collection_errors/ok' % ROOT
+        self.files = ['%s/%s.yml' % (self.ok_dir, x) for x in ['A', 'B']]
+        self.rules = {
+            'A': self.rules_template.copy(),
+            'B': self.rules_template.copy(),
+        }
+
+    def testcheck_variables_rules_dir(self):
+
+        with self.assertRaises(IOError) as ex:
+            self.rules_collection.check_variables_rules_dir(self.no_dir)
+        self.assertEqual("Input directory %s does not exist" % self.no_dir, str(ex.exception))
+
+        with self.assertRaises(IOError) as ex:
+            self.rules_collection.check_variables_rules_dir(self.empty)
+        self.assertEqual("Input directory %s empty" % self.empty, str(ex.exception))
+
+        with self.assertRaises(IOError) as ex:
+            self.rules_collection.check_variables_rules_dir(self.no_yml)
+        self.assertEqual("Input directory %s empty" % self.no_yml, str(ex.exception))
+
+        content = self.rules_collection.check_variables_rules_dir(self.ok_dir)
+        self.assertEqual(sorted(content), self.files)
+
+    def test_parse_variables_rules(self):
+
+        self.rules_collection.parse_variables_rules(self.files)
+        for variable, variable_rules in self.rules_collection.variables_rules.items():
+            self.assertEqual(variable_rules.parsed_rules, {'format': 'str'})
+
+    def test_rules_filled(self):
+
+        rules_collection = RulesCollection()
+        variables_rules_files = rules_collection.check_variables_rules_dir(self.rules_ok_dir)
+        rules_collection.parse_variables_rules(variables_rules_files)
+
+        ok_vars = ['all_ok', 'all_ok_2']
+        rules_collection.check_variables_rules(ok_vars)
+        for ok_var in ok_vars:
+            self.assertEqual(rules_collection.variables_rules[ok_var].rules, self.rules_ok)
+
+
+class RulesClassTests(unittest.TestCase):
+
+    def setUp(self):
+
+        self.rules_dir = '%s/rules_errors' % ROOT
+        self.not_yml = '%s/not_yml' % self.rules_dir
+        # these two well-formatted, dummy rules contain the following info
+        self.simple_ok = '%s/ok/simple.yml' % self.rules_dir
+        self.all_ok = '%s/rules_ok/all_ok.yml' % ROOT
+        self.default_rules = {
+            'remap': {'USA': 'US'},
+            'normalization': {
+                'gated_value': 'Out of bounds',
+                'maximum': 120,
+                'minimum': 0
             },
+            'validation': {
+                'force_to_blank_if': {'is null': ['host_taxid']}
+            },
+            'ontology': 'Gazetteer ontology',
+            'expected': [
+                'I do not have this condition',
+                'Self-diagnosed',
+                'Diagnosed by a medical professional (doctor, physician assistant)',
+                'Diagnosed by an alternative medicine practitioner'
+            ],
+            'blank': 'Not applicable',
+            'missing': 'Not provided',
             'format': 'str'
         }
 

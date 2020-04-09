@@ -8,9 +8,11 @@
 
 import yaml
 import unittest
+import numpy as np
 
 from q2_metadata.normalization._norm_check_rules import check_rule
 from q2_metadata.normalization._norm_errors import (
+    RuleError,
     ExpectedError,
     OntologyError,
     RemapError,
@@ -25,6 +27,7 @@ from q2_metadata.normalization._norm_errors import (
 class UserDefinedExceptions(unittest.TestCase):
 
     def setUp(self):
+        self.rule_not_recognized = ('not_a_rule', '0', 'rule not recognized')
         self.values_expected = {
             'is not a list': ['val', 1],
             'not all items are strings': [['val', 1, '1']]
@@ -65,15 +68,23 @@ class UserDefinedExceptions(unittest.TestCase):
                 {'maximum': 1, 'mininum': 1, 'gated_value': 1, 'a': 1}
             ]
         }
-        self.values_blank = []
-        self.values_missing = []
-        self.values_format = []
+        self.values_str = {
+            'is not a string': [0, {}, np.nan],
+            'not in controlled vocabulary': ['float64', 'int32', 'anything esle']
+        }
 
     def get_message(self, cur, val):
         reformatted_val = '\t# %s' % yaml.dump(val).replace('\n', '\n\t# ')
         message = 'Wrong formatting for "%s" rule; variable test:\n' \
                   '%s' % (cur, reformatted_val)
         return message
+
+    def test_rule_error(self):
+        test_rule, test_value, test_message = self.rule_not_recognized
+        message = '%s -> %s' % (self.get_message(test_rule, test_value), test_message)
+        with self.assertRaises(RuleError) as ex:
+            check_rule('test', {}, test_rule, test_value)
+        self.assertEqual(message, str(ex.exception))
 
     def test_expected_error(self):
         error_types = ['is not a list', 'not all items are strings']
@@ -129,26 +140,29 @@ class UserDefinedExceptions(unittest.TestCase):
                     check_rule('test', {}, 'normalization', eq)
                 self.assertEqual(message, str(ex.exception))
 
-    def test_missing_error(self):
-        for eq in self.values_missing:
-            message = '%s -> is not a string' % self.get_message('missing', eq)
-            with self.assertRaises(MissingError) as ex:
-                check_rule('test', {}, 'missing', eq)
-            self.assertEqual(message, str(ex.exception))
-
-    def test_blank_error(self):
-        for eq in self.values_blank:
-            message = '%s -> is not a string' % self.get_message('blank', eq)
-            with self.assertRaises(BlankError) as ex:
-                check_rule('test', {}, 'blank', eq)
-            self.assertEqual(message, str(ex.exception))
+    def test_missing_blank_error(self):
+        test_error = {'missing': MissingError, 'blank': BlankError}
+        for missing_blank in ['missing', 'blank']:
+            error_types = ['is not a string', 'not in controlled vocabulary']
+            for error_type in error_types:
+                for eq in self.values_str[error_type]:
+                    message = '%s -> %s' % (self.get_message(missing_blank, eq), error_type)
+                    if error_type == 'not in controlled vocabulary':
+                        message = '%s: %s' % (message, eq)
+                    with self.assertRaises(test_error[missing_blank]) as ex:
+                        check_rule('test', {}, missing_blank, eq)
+                    self.assertEqual(message, str(ex.exception))
 
     def test_format_error(self):
-        for eq in self.values_format:
-            message = '%s -> is not a string' % self.get_message('format', eq)
-            with self.assertRaises(FormatError) as ex:
-                check_rule('test', {}, 'format', eq)
-            self.assertEqual(message, str(ex.exception))
+        error_types = ['is not a string', 'not in controlled vocabulary']
+        for error_type in error_types:
+            for eq in self.values_str[error_type]:
+                message = '%s -> %s' % (self.get_message('format', eq), error_type)
+                if error_type == 'not in controlled vocabulary':
+                    message = '%s: %s' % (message, eq)
+                with self.assertRaises(FormatError) as ex:
+                    check_rule('test', {}, 'format', eq)
+                self.assertEqual(message, str(ex.exception))
 
 
 if __name__ == '__main__':

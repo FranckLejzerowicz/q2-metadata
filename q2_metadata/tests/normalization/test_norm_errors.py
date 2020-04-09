@@ -12,7 +12,8 @@ from q2_metadata.normalization._norm_check_rules import (
     check_remap,
     check_validation,
     check_normalization,
-    check_str
+    check_blank_missing,
+    check_format
 )
 import unittest
 
@@ -29,8 +30,8 @@ class RuleFormatCheck(unittest.TestCase):
             1: ['Gazetteer ontology']
         }
         self.values_remap = {
-            0: [['val'], 'val', 1, {'a': 1}, {'a': {}}, {'a': []}],
-            1: [{1: 'a'}, {'a': 'b'}]
+            0: [['val'], 'val', 1, {'a': {}}, {'a': []}],
+            1: [{1: 'a'}, {'a': 'b'}, {'a': 1}, {1: 1}, {1: 'a'}]
         }
         self.values_validation = {
             0: [
@@ -59,9 +60,14 @@ class RuleFormatCheck(unittest.TestCase):
                 {'maximum': 1, 'minimum': 1, 'gated_value': 1}
             ]
         }
-        self.values_str = {
-            0: [['a'], {'a': 1}, ('a',)],
-            1: ['a', '1']
+        self.values_blank_missing = {
+            0: [['list'], {'a': 1}, ('a',), 0, 'other'],
+            1: ['not applicable', 'not collected',
+                'not provided', 'restricted access']
+        }
+        self.values_format = {
+            0: [['list'], {'a': 1}, ('a',), 0, 'other'],
+            1: ['bool', 'float', 'int', 'str']
         }
 
     def test_check_expected(self):
@@ -104,13 +110,21 @@ class RuleFormatCheck(unittest.TestCase):
         for eq in self.values_normalization[1]:
             self.assertTrue(check_normalization(eq))
 
-    def test_check_str(self):
+    def test_check_blank_missing(self):
         # not equal
-        for eq in self.values_str[0]:
-            self.assertFalse(check_str(eq))
+        for eq in self.values_blank_missing[0]:
+            self.assertFalse(check_blank_missing(eq))
         # equal
-        for eq in self.values_str[1]:
-            self.assertTrue(check_str(eq))
+        for eq in self.values_blank_missing[1]:
+            self.assertTrue(check_blank_missing(eq))
+
+    def test_check_format(self):
+        # not equal
+        for eq in self.values_format[0]:
+            self.assertFalse(check_format(eq))
+        # equal
+        for eq in self.values_format[1]:
+            self.assertTrue(check_format(eq))
 
 
 if __name__ == '__main__':
