@@ -51,17 +51,25 @@ def check_rule(variable: str, rules: dict, rule: str, rule_value):
         else:
             raise ExpectedError(variable, rule_value)
 
-    elif rule == 'ontology':
-        if check_ontology(rule_value):
-            rules['lookups'][rule] = rule_value
-        else:
-            raise OntologyError(variable, rule_value)
 
-    elif rule == 'remap':
-        if check_remap(rule_value):
-            rules['edits'][rule] = rule_value
-        else:
-            raise RemapError(variable, rule_value)
+    rule_check_map = {'ontology': {'method': check_ontology, 'error': OntologyError, 'rule_type': 'lookup'},
+                                   'remap': {'method': check_remap, 'error': RemapError, 'rule_type': 'edits'}}
+    if rule not in rule_check_map:
+       #raise/collect some error
+       
+    rule_method = rule_check_map[rule]['method']
+    rule_error = rule_check_map[rule]['error']
+    rule_type = rule_check_map[rule]['rule_type']
+       
+    if rule_method(rule_value):
+        rules[rule_type][rule] = rule_value
+    else:
+        raise rule_error(variable, rule_value) 
+         
+       
+       
+       
+    
 
     elif rule == 'validation':
         if check_validation(rule_value):
