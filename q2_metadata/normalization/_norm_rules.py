@@ -7,7 +7,6 @@
 # ----------------------------------------------------------------------------
 
 import yaml
-from yaml import scanner
 from glob import glob
 import pandas as pd
 from os.path import basename, isdir, splitext
@@ -132,7 +131,6 @@ class Rules(object):
         If wrong formatting of a "missing" rule.
     FormatError
         If wrong formatting of a "format" rule.
-
     """
     def __init__(self, variable_rules_fp: str):
         """Initialize the class instance for the set of rules associated
@@ -145,7 +143,6 @@ class Rules(object):
         ----------
         variable_rules_fp : str
             Path to one variable's rules yaml file.
-
         """
         self.rules = {
             'edits': {
@@ -159,9 +156,10 @@ class Rules(object):
             },
             'allowed': {
                 'blank': None,
-                'missing': None
-            },
-            'format': None
+                'missing': None,
+                'format': None
+            }
+
         }
         self.parsed_rules = self.parse_rule(variable_rules_fp)
         self.warnings = WarningsCollection()
@@ -180,18 +178,10 @@ class Rules(object):
         -------
         parsed_rules : dict
             Parsed variable's rules.
-
         """
         with open(variable_rules_fp) as handle:
-            try:
-                parsed_rules = yaml.load(handle, Loader=yaml.FullLoader)
-                return parsed_rules
-            except yaml.YAMLError:
-                raise IOError("Something is wrong with the .yml rule file.")
-            except yaml.scanner.ScannerError:
-                raise IOError("Something is wrong with the .yml rule file.")
-            except UnicodeDecodeError:
-                raise IOError("Something is wrong with the .yml rule file.")
+            parsed_rules = yaml.load(handle, Loader=yaml.FullLoader)
+            return parsed_rules
 
     def normalize(self, variable: str, input_column: pd.Series) -> pd.Series:
         """
@@ -213,7 +203,6 @@ class Rules(object):
         -------
         output_column : pd.Series
             Curated (or being curated) metadata column.
-
         """
         pass
 
@@ -221,28 +210,18 @@ class Rules(object):
 class RulesCollection(object):
     """Collect all the rules for all the variables.
 
-    Parameters
-    ----------
-    variables_rules_dir : str
-        Path to the folder containing the variables rules in yaml.
-
     Attributes
     ----------
-    variables_rules_files : list
-        Paths to the yaml rules files.
-    warnings : WarningsCollection instance
-        Collection of warnings encountered during either the parsing
-        of the variables rules, or during the application the rules.
-    errors : ErrorsCollection instance
-        Collection of errors encountered during either the parsing
-        of the variables rules, or during the application the rules.
+    variables_rules : dict
+        for each variable (keys) leads to an
+        instance of the `Rules()` class (values).
 
     Methods
     -------
     check_variables_rules
         Fills `rules` attribute with correctly formatted rules
         for the current variable, or raise user-defined exception.
-    _check_variables_rules_dir
+    check_variables_rules_dir
         Performs checks on rules paths input. Either raise Exceptions,
         or return the list `variables_rules_files` containing the paths
         to the existing yml rules files.
@@ -255,10 +234,9 @@ class RulesCollection(object):
     Raises
     ------
     IOError
-        If directory passed to --p-rules-dir does not exist.
+        If directory to process does not exist.
     FileNotFoundError
-        If directory passed to --p-rules-dir contains no .yml file.
-
+        If directory to process contains no .yml file.
     """
 
     def __init__(self) -> None:
@@ -267,14 +245,11 @@ class RulesCollection(object):
         given a `variable` attribute corresponding to the variable name
         as string, as well as a `rules` attribute collecting the actual
         rules in a dictionary.
-
         """
-        self.warnings = WarningsCollection()
-        self.errors = ErrorsCollection()
         self.variables_rules = {}
 
     def parse_variables_rules(self, variables_rules_files: list) -> None:
-        """Parse the variables yaml rues files one by one.
+        """Parse the variables yaml rules files one by one.
         At this point, the attribute `variables_rules` will
         have for each variable (keys), an instance of the
         Rules() class, initiated with an empty default data
@@ -284,7 +259,6 @@ class RulesCollection(object):
         ----------
         variables_rules_files : list
             Paths to the yaml rules files.
-
         """
         for variable_rules_fp in variables_rules_files:
             variable = splitext(basename(variable_rules_fp))[0]
@@ -293,14 +267,13 @@ class RulesCollection(object):
 
     def check_variables_rules(self, focus: list) -> None:
         """This method fills the rules attribute with the correctly
-        formatted rules for the current variable, or or raise user-
+        formatted rules for the current variable, or raise user-
         defined exception.
 
         Parameters
         ----------
         focus : list
             Metadata variables that have rules.
-
         """
         for variable in focus:
             variable_rules = self.variables_rules[variable]
@@ -308,7 +281,7 @@ class RulesCollection(object):
                 check_rule(variable, variable_rules.rules, rule, rule_value)
 
     @staticmethod
-    def _check_variables_rules_dir(variables_rules_dir: str) -> list:
+    def check_variables_rules_dir(variables_rules_dir: str) -> list:
         """Checks that the yaml rules directory exists
         and that it contains yml files. If yes, returns
         the files in a list.
@@ -322,7 +295,6 @@ class RulesCollection(object):
         -------
         variables_rules_files : list
             Paths to the yaml rules files.
-
         """
         if not isdir(variables_rules_dir):
             raise IOError("Input directory %s does not exist" % variables_rules_dir)
