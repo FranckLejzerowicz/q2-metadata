@@ -51,7 +51,7 @@ def normalize(metadata: q2.Metadata, rules_dir: q2.plugin.Str) -> pd.DataFrame:
     md = metadata.to_dataframe()
 
     # get metadata variables that have rules
-    focus = get_intersection(sorted(rules.variables_rules), md.columns.tolist())
+    focus = get_intersection(rules.variables_rules.keys(), md.columns.tolist())
 
     # checks correct rules format and put rules in data structure
     rules.check_variables_rules(list(focus))
