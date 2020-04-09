@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 
 from q2_metadata.normalization._norm_errors import (
-    ExpectedError, OntologyError, RemapError,
+    RuleError, ExpectedError, OntologyError, RemapError,
     ValidationError, NormalizationError,
     BlankError, MissingError, FormatError
 )
@@ -43,63 +43,33 @@ def check_rule(variable: str, rules: dict, rule: str, rule_value):
         - format:
     rule_value : str, list or dict
         Parsed rule value for the current rule.
-
     """
-    if rule == 'expected':
-        if check_expected(rule_value):
-            rules['lookups'][rule] = rule_value
-        else:
-            raise ExpectedError(variable, rule_value)
+    rule_type_map = {
+        'expected': 'lookups',
+        'ontology': 'lookups',
+        'remap': 'edits',
+        'validation': 'edits',
+        'normalization': 'edits',
+        'blank': 'allowed',
+        'missing': 'allowed',
+        'format': 'allowed'
+    }
 
+    if rule not in rule_type_map:
+        raise RuleError(rule, variable, rule_value)
 
-    rule_check_map = {'ontology': {'method': check_ontology, 'error': OntologyError, 'rule_type': 'lookup'},
-                                   'remap': {'method': check_remap, 'error': RemapError, 'rule_type': 'edits'}}
-    if rule not in rule_check_map:
-       #raise/collect some error
-       
-    rule_method = rule_check_map[rule]['method']
-    rule_error = rule_check_map[rule]['error']
-    rule_type = rule_check_map[rule]['rule_type']
-       
+    if rule in ['blank', 'missing']:
+        rule_method_key = 'check_blank_missing'
+    else:
+        rule_method_key = 'check_%s' % rule
+
+    rule_method = globals()[rule_method_key]
+    rule_error = globals()['%sError' % rule.capitalize()]
+    rule_type = rule_type_map[rule]
     if rule_method(rule_value):
         rules[rule_type][rule] = rule_value
     else:
-        raise rule_error(variable, rule_value) 
-         
-       
-       
-       
-    
-
-    elif rule == 'validation':
-        if check_validation(rule_value):
-            rules['edits'][rule] = rule_value
-        else:
-            raise ValidationError(variable, rule_value)
-
-    elif rule == 'normalization':
-        if check_normalization(rule_value):
-            rules['edits'][rule] = rule_value
-        else:
-            raise NormalizationError(variable, rule_value)
-
-    elif rule == 'blank':
-        if check_str(rule_value):
-            rules['allowed'][rule] = rule_value
-        else:
-            raise BlankError(variable, rule_value)
-
-    elif rule == 'missing':
-        if check_str(rule_value):
-            rules['allowed'][rule] = rule_value
-        else:
-            raise MissingError(variable, rule_value)
-
-    elif rule == 'format':
-        if check_str(rule_value):
-            rules['format'] = rule_value
-        else:
-            raise FormatError(variable, rule_value)
+        raise rule_error(variable, rule_value)
 
 
 def check_expected(rule_value):
@@ -122,7 +92,6 @@ def check_expected(rule_value):
     -------
     bool
         True if successful, False otherwise.
-
     """
     # check if the rule value is indeed a list (it must be the case).
     if isinstance(rule_value, list):
@@ -176,10 +145,13 @@ def check_remap(rule_value):
     -------
     bool
         True if successful, False otherwise.
-
     """
     if isinstance(rule_value, dict):
-        str_values = [x for x, y in rule_value.items() if isinstance(y, str)]
+        str_values = [
+            x for x, y in rule_value.items() if
+                isinstance(x, (str, int, float)) and
+                isinstance(y, (str, int, float))
+        ]
         if len(str_values) == len(rule_value.keys()):
             return True
     return False
@@ -207,7 +179,6 @@ def check_validation(rule_value):
     -------
     bool
         True if successful, False otherwise.
-
     """
     # accepted structure for the "validation" rule
     possible_validations = {
@@ -259,7 +230,6 @@ def check_normalization(rule_value):
     -------
     bool
         True if successful, False otherwise.
-
     """
     if isinstance(rule_value, dict):
         possible_normalizations = {'maximum', 'minimum', 'gated_value'}
@@ -269,19 +239,9 @@ def check_normalization(rule_value):
     return False
 
 
-def check_str(rule_value):
-    """Check that the user-defined value for either of the
-    rules "blank", "missing" and "format" is correctly formatted.
-
-    missing must be a str
-        Apply rule of checking the allowed missing values:
-        replace not-expected values and numpy's nan (empty) by
-        the passed missing value term.
-                    missing:
-                        - not applicable
-                        - not collected
-                        - not provided
-                        - restricted access
+def check_format(rule_value):
+    """Check that the user-defined value for
+    rule "format" is correctly formatted.
 
     format must be a str
         Apply rule of checking that the passed column in the correct format:
@@ -293,6 +253,26 @@ def check_str(rule_value):
                       - int
                       - str
 
+    Parameters
+    ----------
+    rule_value
+        Parsed rule value for rule "format".
+
+    Returns
+    -------
+    bool
+        True if successful, False otherwise.
+    """
+    allowed_values = {'bool', 'float', 'int', 'str'}
+    if isinstance(rule_value, str) and rule_value.lower() in allowed_values:
+        return True
+    return False
+
+
+def check_blank_missing(rule_value):
+    """Check that the user-defined value for either of the
+    rule "blank" ot "missing" is correctly formatted.
+
     blank must be a str
         Apply the rules of checking the allowed blank values, by replacing
         the not-expected values and numpy's nan (empty) by the passed
@@ -303,18 +283,29 @@ def check_str(rule_value):
                         - not provided
                         - restricted access
 
+    missing must be a str
+        Apply rule of checking the allowed missing values:
+        replace not-expected values and numpy's nan (empty) by
+        the passed missing value term.
+                    missing:
+                        - not applicable
+                        - not collected
+                        - not provided
+                        - restricted access
+
     Parameters
     ----------
     rule_value
-        Parsed rule value for either of the
-        rules "blank", "missing" or "format".
+        Parsed rule value for either of
+        the rules "blank" or "missing".
 
     Returns
     -------
     bool
         True if successful, False otherwise.
-
     """
-    if isinstance(rule_value, str):
+    allowed_values = {'not applicable', 'not collected',
+                      'not provided', 'restricted access'}
+    if isinstance(rule_value, str) and rule_value.lower() in allowed_values:
         return True
     return False
