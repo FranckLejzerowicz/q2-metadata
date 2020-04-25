@@ -104,11 +104,8 @@ def check_expected(rule_value):
 
 def check_ontology(rule_value):
     """Check that the user-defined value for the
-    rule "ontology" is correctly formatted.
-
-    ontology must be a str
-        Name of the ontology to lookup within for control vocabulary, e.g.
-                    ontology: Gazetteer
+    rule "ontology" is a string that is matching one
+    of one the currently supported ontologies.
 
     Parameters
     ----------
