@@ -6,6 +6,96 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+"""This module contain the main classes for the metadata normalization
+plugin in QIIME2.
+
+Glossary:
+    variable        :   Name of a metadata variable supposed to occur in
+                        the metadata table header.
+    variable_rules  :   Set of rules associated with a variable and described
+                        in the per-variable .yml files.
+    rules           :   collection of all the rules that will apply on all
+                        variables. The rules are parsed, checked and collected
+                        into this structured object before being applied.
+    rule            :   One rule that is one of "expected", "ontology",
+                        "remap", "validation", "normalization", "blank",
+                        "missing" or "format". Each of these rules has a
+                        specific format that is checked (module
+                        _norm_check_rules.py).
+
+Rules formatting (.yml files):
+    remap           :   Map the variables values by replacing all instances
+                        of a given value by another one value.
+        Example:
+            ```
+            remap:
+              US: USA
+            ```
+    validation      :   Validate the variables values by replacing by the
+                        missing value every sample entry that for the current
+                        variable has in one or multiple other variable(s) a
+                        null or missing value for that sample.
+        Example:
+            ```
+            validation:
+              force_to_blank_if:
+                is null:
+                - variable
+            ```
+    normalization   :   Normalize the variables values by replacing the values
+                        outside the a range by a given replacement value.
+        Example:
+            ```
+            normalization:
+                gated_value: nan
+                maximum: 100
+                minimum: 10
+            ```
+    missing         :   Check that missing values are one of the terms reserved
+                        for this instance.
+        Example:
+            ```
+            missing:
+                - not applicable
+                - not collected
+                - not provided
+                - restricted access
+            ```
+    format          :   Check that the passed column is in the correct format.
+        Example:
+            ```
+            format:
+              - bool
+              - float
+              - int
+              - str
+            ```
+
+    expected        :   Check that the variable values are one of the passed
+                        expected values (or the missing and blanks).
+        Example:
+            ```
+            expected:
+                - "Yes"
+                - "No"
+            ```
+    ontology        :   Name of the ontology to look up for control vocabulary.
+        Example:
+            ```
+            ontology: Gazetteer
+            ```
+    blank           :   Check that blank values are one of the terms reserved
+                        for this instance.
+        Example:
+            ```
+            missing:
+                - not applicable
+                - not collected
+                - not provided
+                - restricted access
+            ```
+"""
+
 import yaml
 from glob import glob
 import pandas as pd
@@ -17,68 +107,6 @@ from q2_metadata.normalization._norm_check_rules import check_rule
 
 class Rules(object):
     """Collect the rules of one current variable.
-
-        remap must be a dict
-            Apply the rule of remapping variables values: replace
-            all instances of a given value by another one value.
-                        remap:
-                          str: str
-        validation must be a dict
-            Apply the rule of validating variables values: replace by the blank
-            (or the missing) value every sample entry that for the current variable has
-            in one or multiple other variable(s) a null or missing value for that sample.
-                        validation:
-                          force_to_blank_if:
-                            is null:
-                            - variable
-        normalization must be a dict
-            Apply the rules of normalizing the variables values, by replacing
-            the values outside the range by a given replacement value.
-                        normalization:
-                            gated_value:
-                                - Out of bounds
-                            maximum:
-                                - int
-                                - float
-                            minimum:
-                                - int
-                                - float
-        missing must be a str
-            Apply rule of checking the allowed missing values:
-            replace not-expected values and numpy's nan (empty) by
-            the passed missing value term.
-                        missing:
-                            - not applicable
-                            - not collected
-                            - not provided
-                            - restricted access
-        format must be a str
-            Apply rule of checking that the passed column is in the correct format:
-            [THIS COMMAND WOULD EITHER INFER THE DTYPE (as of now) OR USE THE
-            RESULT OF AN INITIAL DTYPE GETTER FUNCTION (see _dtypes.py)]
-                        format:
-                          - bool
-                          - float
-                          - int
-                          - str
-        expected must be a list
-            Apply rule of allowing only expected values:
-            These do allow the missing and blanks.
-                        expected:
-                            - str
-                            - list
-        ontology must be a str
-            Name of the ontology to lookup within for control vocabulary, e.g.
-                        ontology: Gazetteer
-        blank must be a str
-            Apply the rules of checking the allowed blank values, by replacing
-            the not-expected values and numpy's nan (empty) by the passed
-            blank value term, e.g.
-                        blank:
-                            - not applicable
-                            - not collected
-                            - not provided
-                            - restricted access
 
     Parameters
     ----------
@@ -241,10 +269,10 @@ class RulesCollection(object):
 
     def __init__(self) -> None:
         """Initialize the class instance for the collection of the set
-        of rules associated with all the metadata variables. The instantiated class will be
-        given a `variable` attribute corresponding to the variable name
-        as string, as well as a `rules` attribute collecting the actual
-        rules in a dictionary.
+        of rules associated with all the metadata variables.
+        The instantiated class will be given a `variable` attribute
+        corresponding to the variable name as string, as well as a
+        `rules` attribute collecting the actual rules in a dictionary.
         """
         self.variables_rules = {}
 
