@@ -117,21 +117,14 @@ def check_ontology(rule_value):
     bool
         True if successful, False otherwise.
     """
-    if isinstance(rule_value, str):
-        if rule_value in ['Gazetteer ontology']:
-            return True
-    return False
+    return isinstance(rule_value, str) and rule_value in {'Gazetteer ontology'}
 
 
 def check_remap(rule_value):
     """Check that the user-defined value for the
-    rule "remap" is correctly formatted.
-
-    remap must be a dict
-        Apply the rule of remapping variables values: replace
-        all instances of a given value by another one value.
-                    remap:
-                      str: str
+    rule "remap" is a dictionary and all keys and
+    values instances should be strings, integers
+    or floats.
 
     Parameters
     ----------
