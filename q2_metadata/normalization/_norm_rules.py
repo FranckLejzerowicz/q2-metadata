@@ -20,8 +20,8 @@ Glossary:
     rule            :   One rule that is one of "expected", "ontology",
                         "remap", "validation", "normalization", "blank",
                         "missing" or "format". Each of these rules has a
-                        specific format that is checked (module
-                        _norm_check_rules.py).
+                        `rule_value` in a specific format  checked in module
+                        _norm_check_rules.py.
 
 Rules formatting (.yml files):
     remap           :   Map the variables values by replacing all instances
