@@ -212,7 +212,8 @@ class Rules(object):
             return parsed_rules
 
     def normalize(self, variable: str, input_column: pd.Series) -> pd.Series:
-        """
+        """Apply the rules of the metadata table.
+
         Dispatch the metadata column to be curated to
         the functions that will be applied to properly process
         the current variable according to the current set of
@@ -277,10 +278,12 @@ class RulesCollection(object):
         self.variables_rules = {}
 
     def parse_variables_rules(self, variables_rules_files: list) -> None:
-        """Parse the variables yaml rules files one by one.
+        """Initialize rules structure for each variable.
+
+        Parse the variables yaml rules files one by one.
         At this point, the attribute `variables_rules` will
         have for each variable (keys), an instance of the
-        Rules() class, initiated with an empty default data
+        Rules() class (values), initiated with an empty default data
         structure `rules` and the yet unchecked `parsed_rules`.
 
         Parameters
@@ -294,7 +297,9 @@ class RulesCollection(object):
             self.variables_rules[variable] = Rules(variable_rules_fp)
 
     def check_variables_rules(self, focus: list) -> None:
-        """This method fills the rules attribute with the correctly
+        """Collect the properly-formatted rules.
+
+        This method fills the rules attribute with the correctly
         formatted rules for the current variable, or raise user-
         defined exception.
 
@@ -310,7 +315,9 @@ class RulesCollection(object):
 
     @staticmethod
     def check_variables_rules_dir(variables_rules_dir: str) -> list:
-        """Checks that the yaml rules directory exists
+        """Checks paths validity for the rules files.
+
+        Checks that the yaml rules directory exists
         and that it contains yml files. If yes, returns
         the files in a list.
 
