@@ -148,17 +148,10 @@ def check_remap(rule_value):
 
 
 def check_validation(rule_value):
-    """Check that the user-defined value for the
-    rule "validation" is correctly formatted.
-
-    validation must be a dict
-        Apply the rule of validating variables values: replace by the blank
-        (or the missing) value every sample entry that for the current variable has
-        in one or multiple other variable(s) a null or missing value for that sample.
-                    validation:
-                      force_to_blank_if:
-                        is null:
-                        - variable
+    """Check that the user-defined value for the rule
+    "validation" is a nested dictionary that has for first
+    key "force_to_blank_if" and for nested key "is null",
+    and for nested value a list.
 
     Parameters
     ----------
