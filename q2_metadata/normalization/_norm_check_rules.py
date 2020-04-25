@@ -214,17 +214,8 @@ def check_normalization(rule_value):
 
 def check_format(rule_value):
     """Check that the user-defined value for
-    rule "format" is correctly formatted.
-
-    format must be a str
-        Apply rule of checking that the passed column in the correct format:
-        [THIS COMMAND WOULD EITHER INFER THE DTYPE (as of now) OR USE THE
-        RESULT OF AN INITIAL DTYPE GETTER FUNCTION (see _dtypes.py)]
-                    format:
-                      - bool
-                      - float
-                      - int
-                      - str
+    rule "format" is a string that is one of
+    "bool", "float", "int" or "str".
 
     Parameters
     ----------
@@ -237,9 +228,7 @@ def check_format(rule_value):
         True if successful, False otherwise.
     """
     allowed_values = {'bool', 'float', 'int', 'str'}
-    if isinstance(rule_value, str) and rule_value.lower() in allowed_values:
-        return True
-    return False
+    return isinstance(rule_value, str) and rule_value.lower() in allowed_values
 
 
 def check_blank_missing(rule_value):
