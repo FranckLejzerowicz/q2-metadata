@@ -18,7 +18,8 @@ RULES = pkg_resources.resource_filename("q2_metadata", "")
 
 
 def normalize(metadata: q2.Metadata, rules_dir: q2.plugin.Str) -> pd.DataFrame:
-    """
+    """Main script for the QIIME2 normalization plugin.
+
     Parameters
     ----------
     metadata : q2.Metadata
@@ -45,7 +46,7 @@ def normalize(metadata: q2.Metadata, rules_dir: q2.plugin.Str) -> pd.DataFrame:
     variables_rules_files = rules.check_variables_rules_dir(variables_rules_dir)
 
     # parse all the variables' yaml rules files
-    rules.parse_variables_rules(list(variables_rules_files))
+    rules.parse_variables_rules(variables_rules_files)
 
     # Get metadata as pandas data frame
     md = metadata.to_dataframe()
