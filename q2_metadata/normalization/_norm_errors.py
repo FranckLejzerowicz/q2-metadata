@@ -13,7 +13,6 @@ class Error(Exception):
     """Base class for exceptions encountered
     in the rules checking."""
 
-    @classmethod
     def generic_message(cls, rule, variable, value):
         reformatted_value = '\t# %s' % yaml.dump(value).replace('\n', '\n\t# ')
         return 'Wrong formatting for "%s" rule; variable %s:\n' \
