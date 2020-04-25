@@ -81,14 +81,7 @@ def check_rule(variable: str, rules: dict, rule: str, rule_value):
 
 def check_expected(rule_value):
     """Check that the user-defined value for the
-    rule "expected" is correctly formatted.
-
-    expected must be a list
-        Apply rule of allowing only expected values:
-        These do allow the missing and blanks.
-                    expected:
-                        - str
-                        - list
+    rule "expected" is a list of strings.
 
     Parameters
     ----------
