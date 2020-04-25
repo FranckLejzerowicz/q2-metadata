@@ -45,27 +45,20 @@ def check_rule(variable: str, rules: dict, rule: str, rule_value):
         Parsed rule value for the current rule.
     """
     rule_type_map = {
-        'expected': 'lookups',
-        'ontology': 'lookups',
-        'remap': 'edits',
-        'validation': 'edits',
-        'normalization': 'edits',
-        'blank': 'allowed',
-        'missing': 'allowed',
-        'format': 'allowed'
+        'expected': (check_expected, ExpectedError, 'lookups', ),
+        'ontology': (check_ontology, OntologyError, 'lookups'),
+        'remap': (check_remap, RemapError, 'edits'),
+        'validation': (check_validation, ValidationError, 'edits'),
+        'normalization': (check_normalization, NormalizationError, 'edits'),
+        'blank': (check_blank_missing, BlankError, 'allowed'),
+        'missing': (check_blank_missing, MissingError, 'allowed'),
+        'format': (check_format, FormatError, 'allowed')
     }
 
     if rule not in rule_type_map:
         raise RuleError(rule, variable, rule_value)
 
-    if rule in ['blank', 'missing']:
-        rule_method_key = 'check_blank_missing'
-    else:
-        rule_method_key = 'check_%s' % rule
-
-    rule_method = globals()[rule_method_key]
-    rule_error = globals()['%sError' % rule.capitalize()]
-    rule_type = rule_type_map[rule]
+    rule_method, rule_error, rule_type = rule_type_map[rule]
     if rule_method(rule_value):
         rules[rule_type][rule] = rule_value
     else:
