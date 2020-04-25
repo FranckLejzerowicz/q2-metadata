@@ -188,21 +188,10 @@ def check_validation(rule_value):
 
 
 def check_normalization(rule_value):
-    """Check that the user-defined value for the
-    rule "normalization" is correctly formatted.
-
-    normalization must be a dict
-        Apply the rules of normalizing the variables values, by replacing
-        the values outside the range by a given replacement value.
-                    normalization:
-                        gated_value:
-                            - Out of bounds
-                        maximum:
-                            - int
-                            - float
-                        minimum:
-                            - int
-                            - float
+    """Check that the user-defined value for the rule
+    "normalization" is a dictionary which keys are no
+    other than "minimum", "maximum" or "gated_value",
+    and which values are numeric.
 
     Parameters
     ----------
@@ -214,10 +203,11 @@ def check_normalization(rule_value):
     bool
         True if successful, False otherwise.
     """
-    if isinstance(rule_value, dict):
-        possible_normalizations = {'maximum', 'minimum', 'gated_value'}
-        rule_value_set = set(rule_value)
-        if not len(rule_value_set ^ (rule_value_set & possible_normalizations)):
+    allowed = {'maximum', 'minimum', 'gated_value'}
+    rule_value_set = set(rule_value)
+    if isinstance(rule_value, dict) and rule_value_set.issubset(allowed):
+        is_int_or_float = map(lambda x: isinstance(x, (int, float)), rule_value.values())
+        if len(rule_value) == sum(is_int_or_float):
             return True
     return False
 
