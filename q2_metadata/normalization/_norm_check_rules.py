@@ -18,7 +18,8 @@ def check_rule(variable: str, rules: dict, rule: str, rule_value):
     perform checks that the rule values to be used for the rules
     to apply are properly formatted. The properly formatted rules
     are collected in the `Rules.rules` dictionary structure that
-    is the same of all variables.
+    is the same of all variables, otherwise, a user-defined error
+    specific to each rule is raised.
 
     Parameters
     ----------
@@ -37,10 +38,24 @@ def check_rule(variable: str, rules: dict, rule: str, rule_value):
 
     Raises
     ------
-    User-defined error specific to each rule. Can be one of
-    RuleError, ExpectedError, OntologyError, RemapError,
-    ValidationError, NormalizationError, BlankError,
-    MissingError, FormatError.
+    RuleError
+        If the rule is not recognized.
+    ExpectedError
+        If the "expected" rule if not properly formatted.
+    OntologyError
+        If the "ontology" rule if not properly formatted.
+    RemapError
+        If the "remap" rule if not properly formatted.
+    ValidationError
+        If the "validation" rule if not properly formatted.
+    NormalizationError
+        If the "normalization" rule if not properly formatted.
+    BlankError
+        If the "blank" rule if not properly formatted.
+    MissingError
+        If the "missing" rule if not properly formatted.
+    FormatError
+        If the "format" rule if not properly formatted.
     """
 
     rule_type_map = {
