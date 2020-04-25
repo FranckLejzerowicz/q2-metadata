@@ -64,13 +64,13 @@ class OntologyError(Error):
         self.variable = variable
         self.value = value
         self.message = self.get_message()
+        self.ontologies = ['Gazetteer ontology']
 
     def get_message(self):
         if not isinstance(self.value, str):
             return 'is not a string'
-        ontologies = ['Gazetteer ontology']
-        if self.value not in ontologies:
-            return 'none of %s' % ', '.join(ontologies)
+        if self.value not in self.ontologies:
+            return 'none of %s' % ', '.join(self.ontologies)
 
     def __str__(self):
         message = self.generic_message(self.rule, self.variable, self.value)
