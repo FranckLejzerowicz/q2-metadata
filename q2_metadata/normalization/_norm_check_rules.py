@@ -16,12 +16,9 @@ from q2_metadata.normalization._norm_errors import (
 def check_rule(variable: str, rules: dict, rule: str, rule_value):
     """For each rule in the current variable's rules set,
     perform checks that the rule values to be used for the rules
-    to apply are properly formatted.
-        - If properly formatted: full the rules dict
-        for the variable's Rules() class instance.
-        - If not properly formatted: raise a specific error and
-        collect the encountered error in the ErrorsCollection()
-        instance for this variable's Rules() class instance.
+    to apply are properly formatted. The properly formatted rules
+    are collected in the `Rules.rules` dictionary structure that
+    is the same of all variables.
 
     Parameters
     ----------
@@ -32,18 +29,20 @@ def check_rule(variable: str, rules: dict, rule: str, rule_value):
         common default values for all variables and
         that is checked and updated here.
     rule : str
-        Current rule name. Could be one of these:
-        - expected: accepted, controlled vocabulary from AGP.
-        - ontology: accepted, controlled vocabulary from a third-party resource.
-        - remap: the replacements to perform ( "A" -> "B" )
-        - validation: the
-        - normalization:
-        - blank:
-        - missing:
-        - format:
+        Current rule name. Could be one of "expected", "ontology",
+        "remap", "validation", "normalization", "blank", "missing",
+        "format".
     rule_value : str, list or dict
         Parsed rule value for the current rule.
+
+    Raises
+    ------
+    User-defined error specific to each rule. Can be one of
+    RuleError, ExpectedError, OntologyError, RemapError,
+    ValidationError, NormalizationError, BlankError,
+    MissingError, FormatError.
     """
+
     rule_type_map = {
         'expected': (check_expected, ExpectedError, 'lookups', ),
         'ontology': (check_ontology, OntologyError, 'lookups'),
