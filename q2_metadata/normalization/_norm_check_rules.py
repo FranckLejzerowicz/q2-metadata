@@ -233,27 +233,9 @@ def check_format(rule_value):
 
 def check_blank_missing(rule_value):
     """Check that the user-defined value for either of the
-    rule "blank" ot "missing" is correctly formatted.
-
-    blank must be a str
-        Apply the rules of checking the allowed blank values, by replacing
-        the not-expected values and numpy's nan (empty) by the passed
-        blank value term, e.g.
-                    blank:
-                        - not applicable
-                        - not collected
-                        - not provided
-                        - restricted access
-
-    missing must be a str
-        Apply rule of checking the allowed missing values:
-        replace not-expected values and numpy's nan (empty) by
-        the passed missing value term.
-                    missing:
-                        - not applicable
-                        - not collected
-                        - not provided
-                        - restricted access
+    rules "blank" or "missing" is a string that is one of
+    "not applicable", "not collected", "not provided" or
+    "restricted access".
 
     Parameters
     ----------
@@ -268,6 +250,4 @@ def check_blank_missing(rule_value):
     """
     allowed_values = {'not applicable', 'not collected',
                       'not provided', 'restricted access'}
-    if isinstance(rule_value, str) and rule_value.lower() in allowed_values:
-        return True
-    return False
+    return isinstance(rule_value, str) and rule_value.lower() in allowed_values
