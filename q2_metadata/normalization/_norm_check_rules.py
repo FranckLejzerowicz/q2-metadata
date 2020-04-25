@@ -204,11 +204,12 @@ def check_normalization(rule_value):
         True if successful, False otherwise.
     """
     allowed = {'maximum', 'minimum', 'gated_value'}
-    rule_value_set = set(rule_value)
-    if isinstance(rule_value, dict) and rule_value_set.issubset(allowed):
-        is_int_or_float = map(lambda x: isinstance(x, (int, float)), rule_value.values())
-        if len(rule_value) == sum(is_int_or_float):
-            return True
+    if isinstance(rule_value, dict):
+        rule_value_set = set(rule_value)
+        if rule_value_set.issubset(allowed):
+            is_int_or_float = map(lambda x: isinstance(x, (int, float)), rule_value.values())
+            if len(rule_value) == sum(is_int_or_float):
+                return True
     return False
 
 
