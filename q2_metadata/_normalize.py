@@ -11,7 +11,6 @@ import pandas as pd
 import pkg_resources
 
 from q2_metadata.normalization._norm_utils import get_intersection, get_variables_rules_dir
-from q2_metadata.normalization._norm_messages import WarningsCollection, ErrorsCollection
 from q2_metadata.normalization._norm_rules import RulesCollection
 
 RULES = pkg_resources.resource_filename("q2_metadata", "")
@@ -39,13 +38,11 @@ def normalize(metadata: q2.Metadata, rules_dir: q2.plugin.Str) -> pd.DataFrame:
 
     # initialize the collection objects as well as for warning and errors
     rules = RulesCollection()
-    warnings = WarningsCollection()
-    errors = ErrorsCollection()
 
     # Collect rules from yaml files folder by instantiating a class
     variables_rules_files = rules.check_variables_rules_dir(variables_rules_dir)
 
-    # parse all the variables' yaml rules files
+    # parse all the variables' yaml rules files without checking
     rules.parse_variables_rules(variables_rules_files)
 
     # Get metadata as pandas data frame
@@ -56,6 +53,8 @@ def normalize(metadata: q2.Metadata, rules_dir: q2.plugin.Str) -> pd.DataFrame:
 
     # checks correct rules format and put rules in data structure
     rules.check_variables_rules(focus)
+
+
 
     # apply rules one variable at a time
     # for variable in focus:
