@@ -1,0 +1,26 @@
+ontology:
+  - 'Gazetteer ontology'
+validation:
+  force_to_blank_if:
+    - "is null"
+normalization:
+  - maximum
+  - minimum
+  - gated_value
+format:
+  - bool
+  - float
+  - int
+  - str
+expected: None
+remap: None
+blank:
+  - 'not applicable'
+  - 'not collected'
+  - 'not provided'
+  - 'restricted access'
+missing:
+  - 'not applicable'
+  - 'not collected'
+  - 'not provided'
+  - 'restricted access'
