@@ -6,163 +6,232 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import yaml
 import unittest
 import numpy as np
 
-from q2_metadata.normalization._norm_check_rules import check_rule
-from q2_metadata.normalization._norm_errors import (
-    RuleError,
-    ExpectedError,
-    OntologyError,
-    RemapError,
-    ValidationError,
-    NormalizationError,
-    BlankError,
-    MissingError,
-    FormatError
-)
+from q2_metadata.normalization._norm_rules import RulesCollection
 
 
-class UserDefinedExceptions(unittest.TestCase):
+class RulesFormatChecks(unittest.TestCase):
 
     def setUp(self):
+
+        self.rules_collection = RulesCollection()
+
         self.rule_not_recognized = ('not_a_rule', '0', 'rule not recognized')
         self.values_expected = {
-            'is not a list': ['val', 1],
-            'not all items are strings': [['val', 1, '1']]
+            'not a list': ['val', 1],
+            'not a string': [['val', 1, '1']],
+            'ok': [['val', '1'], ['1', '2']]
         }
         self.values_ontology = {
-            'is not a string': [['Gazetteer_ontology', 'Gazetteer'], 1, {}],
-            'none of Gazetteer ontology': ['Gazetteer_ontology', 'Gazetteer']
+            'not a string': [['Gazetteer_ontology', 'Gazetteer'], 1, {}],
+            'not allowed': ['Gazetteer_ontology', 'Gazetteer'],
+            'ok': ['Gazetteer ontology']
         }
+
         self.values_remap = {
-            'is not a dictionary': [['val'], 'val', 1],
-            'not all dictionary values are strings': [{'a': 1}, {'a': {}}, {'a': []}]
+            'not a dictionary': [['val'], 'val', 1],
+            'not str, int or float': [{('a',1): 1}, {'a': {}}, {'a': []}],
+            'ok': [{1: 2}, {'a': 'b'}, {'Yes': 1}]
+        }
+
+        self.values_normalization = {
+            'not a dictionary': ['1', 1, []],
+            'not allowed': [
+                {'a': 1},
+                {'maximum': 1, 'a': 1},
+                {'maximum': 1, 'minimum': 1, 'a': 1},
+                {'maximum': 1, 'minimum': 1, 'gated_value': 1, 'a': 1}
+            ],
+            'not numeric': [
+                {'minimum': 'a'},
+                {'maximum': 1, 'minimum': 'a'},
+                {'maximum': 1, 'minimum': 1, 'gated_value': {}}
+            ],
+            'ok': [
+                {'maximum': 1},
+                {'maximum': 1, 'minimum': 1},
+                {'maximum': 1, 'minimum': 1, 'gated_value': 1}
+            ]
         }
 
         self.values_validation = {
-            'is not a dictionary': [
+            'not a dictionary': [
                 ('1', None), (1, None), ([], None)
             ],
-            'inacceptable validations': [
+            'not a nested dictionary': [
+                ({'force_to_blank_if': []}, None),
+            ],
+            'not a list': [
+                ({'force_to_blank_if': {'is null': 'a'}}, 0),
+                ({'force_to_blank_if': {'is null': {}}}, 1)
+            ],
+            'not allowed': [
+                ({'force_to_blank_if': {'not a condition': []}}, 'not a condition'),
                 ({'force_to_blank_if': 0, 'other': 0}, 'other'),
                 ({'not_accepted': 0}, 'not_accepted'),
-                ({'not_accepted': 0, 'not_accepted2': 0}, 'not_accepted, not_accepted2'),
             ],
-            'variables not in a list for condition': [
-                ({'force_to_blank_if': {'is null': 0}}, 'is null'),
-                ({'force_to_blank_if': {'is null': 'a'}}, 'is null'),
-                ({'force_to_blank_if': {'is null': {}}}, 'is null')
-            ],
-            'inacceptable condition': [
-                ({'force_to_blank_if': {'not a condition': []}}, 'not a condition')
+            'ok': [
+                ({'force_to_blank_if': {'is null': []}}, '')
             ]
         }
-        self.values_normalization = {
-            'is not a dictionary': ['1', 1, []],
-            'impossible normalization terms': [
-                {'a': 1},
-                {'maximum': 1, 'a': 1},
-                {'maximum': 1, 'mininum': 1, 'a': 1},
-                {'maximum': 1, 'mininum': 1, 'gated_value': 1, 'a': 1}
+
+        self.rules_allowed = {
+            'blank': [
+                'not applicable',
+                'not collected',
+                'not provided',
+                'restricted access'
+            ],
+            'missing': [
+                'not applicable',
+                'not collected',
+                'not provided',
+                'restricted access'
+            ],
+            'format': [
+                'bool',
+                'float',
+                'int',
+                'str'
             ]
         }
+
         self.values_str = {
-            'is not a string': [0, {}, np.nan],
-            'not in controlled vocabulary': ['float64', 'int32', 'anything esle']
+            'blank': {
+                'not a string': [0, {}, np.nan],
+                'not allowed': ['float64', 'int32', 'anything else'],
+                'ok': ['restricted access']
+            },
+            'missing': {
+                'not a string': [0, {}, np.nan],
+                'not allowed': ['float64', 'int32', 'anything else'],
+                'ok': ['restricted access']
+            },
+            'format': {
+                'not a string': [0, {}, np.nan],
+                'not allowed': ['float64', 'int32', 'anything else'],
+                'ok': ['str', 'int']
+            }
         }
 
-    def get_message(self, cur, val):
-        reformatted_val = '\t# %s' % yaml.dump(val).replace('\n', '\n\t# ')
-        message = 'Wrong formatting for "%s" rule; variable test:\n' \
-                  '%s' % (cur, reformatted_val)
-        return message
-
-    def test_rule_error(self):
-        test_rule, test_value, test_message = self.rule_not_recognized
-        message = '%s -> %s' % (self.get_message(test_rule, test_value), test_message)
-        with self.assertRaises(RuleError) as ex:
-            check_rule('test', {}, test_rule, test_value)
-        self.assertEqual(message, str(ex.exception))
+    # to test in ""check_rule()""
+    # to test in ""check_rule()""
+    # to test in ""check_rule()""
+    # def get_message(self, cur, val):
+    #     reformatted_val = '\t# %s' % yaml.dump(val).replace('\n', '\n\t# ')
+    #     message = 'Wrong formatting for "%s" rule:\n%s' % (cur, reformatted_val)
+    #     return message
+    #
+    # def test_rule_error(self):
+        # self.rules_collection.check_rule()
+    #     test_rule, test_value, test_message = self.rule_not_recognized
+    #     message = '%s -> %s' % (self.get_message(test_rule, test_value), test_message)
+    #     with self.assertRaises(RuleError) as ex:
+    #         check_rule({}, test_rule, test_value)
+    #     self.assertEqual(message, str(ex.exception))
 
     def test_expected_error(self):
-        error_types = ['is not a list', 'not all items are strings']
+        error_types = ['not a list', 'not a string', 'ok']
         for error_type in error_types:
             for eq in self.values_expected[error_type]:
-                message = '%s -> %s' % (self.get_message('expected', eq), error_type)
-                with self.assertRaises(ExpectedError) as ex:
-                    check_rule('test', {}, 'expected', eq)
-                self.assertEqual(message, str(ex.exception))
+                error_test = self.rules_collection.check_expected(eq, None)
+                if error_type == 'ok':
+                    self.assertEqual([], error_test)
+                elif error_type == 'not a string':
+                    self.assertEqual([error_type, [1]], error_test)
+                else:
+                    self.assertEqual([error_type], error_test)
 
     def test_ontology_error(self):
-        error_types = ['is not a string', 'none of Gazetteer ontology']
+        error_types = ['not a string', 'not allowed', 'ok']
         for error_type in error_types:
             for eq in self.values_ontology[error_type]:
-                message = '%s -> %s' % (self.get_message('ontology', eq), error_type)
-                with self.assertRaises(OntologyError) as ex:
-                    check_rule('test', {}, 'ontology', eq)
-                self.assertEqual(message, str(ex.exception))
+                error_test = self.rules_collection.check_allowed(
+                    eq, ['Gazetteer ontology'])
+                if error_type == 'ok':
+                    self.assertEqual([], error_test)
+                elif error_type == 'not allowed':
+                    self.assertEqual([error_type, eq], error_test)
+                else:
+                    self.assertEqual([error_type], error_test)
 
     def test_remap_error(self):
-        error_types = ['is not a dictionary', 'not all dictionary values are strings']
+        error_types = ['not a dictionary', 'not str, int or float', 'ok']
         for error_type in error_types:
             for eq in self.values_remap[error_type]:
-                message = '%s -> %s' % (self.get_message('remap', eq), error_type)
-                with self.assertRaises(RemapError) as ex:
-                    check_rule('test', {}, 'remap', eq)
-                self.assertEqual(message, str(ex.exception))
+                error_test = self.rules_collection.check_remap(
+                    eq, None)
+                if error_type == 'ok':
+                    self.assertEqual([], error_test)
+                elif error_type == 'not str, int or float':
+                    self.assertEqual(
+                        [error_type,
+                         ['%s: %s' % (
+                             list(eq.keys())[0], list(eq.values())[0]
+                         )]], error_test
+                    )
+                else:
+                    self.assertEqual([error_type], error_test)
 
     def test_validation_error(self):
         error_types = [
-            'is not a dictionary',
-            'inacceptable validations',
-            'variables not in a list for condition',
-            'inacceptable condition'
+            'not a dictionary',
+            'not a nested dictionary',
+            'not a list',
+            'not allowed',
+            'ok'
         ]
         for error_type in error_types:
             for (eq, txt) in self.values_validation[error_type]:
-                message = '%s -> %s' % (self.get_message('validation', eq), error_type)
-                if txt:
-                    message = '%s: %s' % (message, txt)
-                with self.assertRaises(ValidationError) as ex:
-                    check_rule('test', {}, 'validation', eq)
-                self.assertEqual(message, str(ex.exception))
+                error_test = self.rules_collection.check_validation(
+                    eq, {'force_to_blank_if': ['is null']})
+                if error_type == 'ok':
+                    self.assertEqual([], error_test)
+                elif error_type == 'not a dictionary':
+                    self.assertEqual([error_type], error_test)
+                elif error_type == 'not a nested dictionary':
+                    self.assertEqual([error_type], error_test)
+                elif error_type == 'not a list':
+                    if txt:
+                        self.assertEqual([error_type, {}], error_test)
+                    else:
+                        self.assertEqual([error_type, 'a'], error_test)
+                elif error_type == 'not allowed':
+                    self.assertEqual([error_type, txt], error_test)
 
     def test_normalization_error(self):
-        error_types = ['is not a dictionary', 'impossible normalization terms']
+        error_types = ['not a dictionary', 'not allowed', 'not numeric', 'ok']
         for error_type in error_types:
             for eq in self.values_normalization[error_type]:
-                message = '%s -> %s' % (self.get_message('normalization', eq), error_type)
-                if error_type == 'impossible normalization terms':
-                    message = '%s: a' % message
-                with self.assertRaises(NormalizationError) as ex:
-                    check_rule('test', {}, 'normalization', eq)
-                self.assertEqual(message, str(ex.exception))
+                error_test = self.rules_collection.check_normalization(
+                    eq, ['maximum', 'minimum', 'gated_value'])
+                if error_type == 'ok':
+                    self.assertEqual([], error_test)
+                elif error_type == 'not numeric':
+                    if 'gated_value' in eq:
+                        self.assertEqual([error_type, ['gated_value']], error_test)
+                    else:
+                        self.assertEqual([error_type, ['minimum']], error_test)
+                elif error_type == 'not allowed':
+                    self.assertEqual([error_type, 'a'], error_test)
+                else:
+                    self.assertEqual([error_type], error_test)
 
-    def test_missing_blank_error(self):
-        test_error = {'missing': MissingError, 'blank': BlankError}
-        for missing_blank in ['missing', 'blank']:
-            error_types = ['is not a string', 'not in controlled vocabulary']
+    def test_allowed_error(self):
+        for rule, rule_allowed in self.rules_allowed.items():
+            error_types = ['not a string', 'not allowed', 'ok']
             for error_type in error_types:
-                for eq in self.values_str[error_type]:
-                    message = '%s -> %s' % (self.get_message(missing_blank, eq), error_type)
-                    if error_type == 'not in controlled vocabulary':
-                        message = '%s: %s' % (message, eq)
-                    with self.assertRaises(test_error[missing_blank]) as ex:
-                        check_rule('test', {}, missing_blank, eq)
-                    self.assertEqual(message, str(ex.exception))
-
-    def test_format_error(self):
-        error_types = ['is not a string', 'not in controlled vocabulary']
-        for error_type in error_types:
-            for eq in self.values_str[error_type]:
-                message = '%s -> %s' % (self.get_message('format', eq), error_type)
-                if error_type == 'not in controlled vocabulary':
-                    message = '%s: %s' % (message, eq)
-                with self.assertRaises(FormatError) as ex:
-                    check_rule('test', {}, 'format', eq)
-                self.assertEqual(message, str(ex.exception))
+                for eq in self.values_str[rule][error_type]:
+                    error_test = self.rules_collection.check_allowed(
+                        eq, rule_allowed)
+                    if error_type == 'ok':
+                        self.assertEqual([], error_test)
+                    elif error_type == 'not allowed':
+                        self.assertEqual([error_type, eq], error_test)
+                    else:
+                        self.assertEqual([error_type], error_test)
 
 
 if __name__ == '__main__':
