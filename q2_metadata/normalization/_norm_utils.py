@@ -6,6 +6,8 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import yaml
+
 
 def get_intersection(variables_rules: list, md_columns: list) -> list:
     """
@@ -53,3 +55,8 @@ def get_variables_rules_dir(rules_dir: str, RULES: str) -> str:
         variables_rules_dir = RULES
     return variables_rules_dir
 
+
+def read_yaml_file(fp) -> dict:
+    with open(fp) as handle:
+        yaml_read = yaml.load(handle, Loader=yaml.FullLoader)
+        return yaml_read
